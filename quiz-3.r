@@ -34,6 +34,7 @@ text(mod1$finalModel,use.n=TRUE, all=TRUE,cex=.8)
 
 # If K is small in a K-fold cross validation is the bias in the estimate of out-of-sample (test set) accuracy smaller or bigger? If K is small is the variance in the estimate of out-of-sample (test set) accuracy smaller or bigger. Is K large or small in leave one out cross validation?
 
+# The bias is larger and the variance is smaller. Under leave one out cross validation K is equal to one.
 
 
 
