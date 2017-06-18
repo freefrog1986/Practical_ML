@@ -131,17 +131,21 @@ $(document).ready(function () {
 <p>what you think the expected out of sample error is, and why you made the choices you did.</p>
 <p>You will also use your prediction model to predict 20 different test cases.</p>
 </div>
-<div id="load-data" class="section level2">
-<h2>Load data</h2>
+<div id="load-and-split-data" class="section level2">
+<h2>Load and split data</h2>
 <p>The data for this project come from this source: <a href="http://groupware.les.inf.puc-rio.br/har" class="uri">http://groupware.les.inf.puc-rio.br/har</a><br />
-First, load in the train data and test data.</p>
+Load the train data and test data.</p>
 <pre class="r"><code>Train_Data &lt;- read.csv('pml-training.csv')
 Test_Data &lt;- read.csv('pml-testing.csv')
 dim(Train_Data)</code></pre>
 <pre><code>## [1] 19622   160</code></pre>
 <pre class="r"><code>dim(Test_Data)</code></pre>
 <pre><code>## [1]  20 160</code></pre>
-<p>There are 160 variables, and we will predict the “classe” variable which represent the Participants’ manner.</p>
+<p>There are 160 variables, and we will predict the “classe” variable which represent the Participants’ manner. Then split the training data into Training and validation data.</p>
+<pre class="r"><code>library(caret)
+inTrain &lt;- createDataPartition(y=Train_Data$classe, p=0.75, list=FALSE)
+Training_Data &lt;- Train_Data[inTrain,]
+Validation_Data &lt;- Train_Data[-inTrain,]</code></pre>
 </div>
 <div id="including-plots" class="section level2">
 <h2>Including Plots</h2>

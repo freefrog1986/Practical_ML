@@ -30,7 +30,8 @@ dim(Test_Data)
 ```
 There are 160 variables, and we will predict the "classe" variable which represent the Participants' manner. 
 Then split the training data into Training and validation data. 
-```{r split data}
+```{r split data, eval = FALSE}
+library(caret)
 inTrain <- createDataPartition(y=Train_Data$classe, p=0.75, list=FALSE)
 Training_Data <- Train_Data[inTrain,]
 Validation_Data <- Train_Data[-inTrain,]
