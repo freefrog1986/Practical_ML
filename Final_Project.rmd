@@ -1,0 +1,128 @@
+
+
+### Split data into : training, testing, validation
+
+
+###preProcessing
+preObj<-preProcess(training[,-58],method=c("center","scale"))
+
+
+# If you have some missing data ,you can use this preprocess
+
+preObj<-preProcess(training[,-58],method="knnImpute")
+capAve<-predict(preObj,training[,-58])$capAve
+
+# removing some variables that have no variance 
+
+nsv<-nearZeroVar(training,saveMetrics=TRUE)
+nsv
+
+#??? Common covariates to add, dummy variables
+dummies<-dummyVars(wage~jobclass,data=training)
+
+#???Spline basis
+bsBasis <- bs(training$age,df=3)
+
+
+# Preprocessing with principal components analysis(PCA)
+### correelated predictors
+# find out which columns are most correlated with each other except themselves
+
+library(caret);library(kernlab);data(spam)
+inTrain<-createDataPartition(y=spam$type, p= 0.75, list=FALSE)
+training <-spam[inTrain,]
+testing <-spam[-inTrain,]
+
+M<-abs(cor(training[,-58]))
+diag(M)<-0
+which(M>0.8,arr.ind=T)
+names(spam)[c(34,32)]
+plot(spam[,34],spam[,32])
+
+###PCA with caret
+preProc <- preProcess(log10(spam[,-58]+1),method="pca",pcaComp=2)
+spamPC <- predict(preProc,log10(spam[,-58]+1))
+plot(spamPC[,1],spamPC[,2],col=typeColor)
+
+
+
+preProc <- preProcess(log10(spam[,-58]+1),method="pca",pcaComp=2)
+spamPC <- predict(preProc,log10(spam[,-58]+1))
+plot(spamPC[,1],spamPC[,2],col=typeColor)
+
+preProc <- preProcess(log10(training[,-58]+1), method="pca", pcaComp=2)
+trainPC <- predict(preProc, log10(training[,-58]+1) )
+modelFit <- train(training$type ~ ., method ="glm", data=trainPC)
+
+testPC <-predict(preProc,log10(testing[,-58]+1))
+confusionMatrix(testing$type,predict(modelFit,testPC))
+
+
+
+#you can also set thresh = 0.9 to Calculate the number of principal components needed to capture 90% of the variance 
+
+
+### sample size: 
+
+
+### what type of error do we care
+sensitivity
+specificity
+positive predictive value
+negative predictive value
+accuracy
+
+#!!!! for continues data:
+mse
+rmse
+
+##ROC
+X asis is 1-specificity,Y asis is sensitivity
+
+Area under the curve ( AUC ) is to decide which auc is better
+
+
+
+
+### cross validation
+
+
+
+
+### train some models
+
+
+
+
+
+set.seed()
+
+
+Linear discriminant analysis
+Regression
+Naive Bayes
+Support vector machines
+Classification and regression trees
+Random forests
+Boosting
+
+
+
+
+### model comparison
+confusion Matrix
+
+
+### predict
+
+
+### Plotting predictors
+
+
+
+### In sample error
+
+
+
+### Out of sample error
+
