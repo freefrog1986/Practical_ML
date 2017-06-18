@@ -19,9 +19,9 @@ what you think the expected out of sample error is, and why you made the choices
 
 You will also use your prediction model to predict 20 different test cases.
 
-## Load data
+## Load and split data
 The data for this project come from this source: http://groupware.les.inf.puc-rio.br/har        
-First, load in the train data and test data.
+Load the train data and test data.
 ```{r load data}
 Train_Data <- read.csv('pml-training.csv')
 Test_Data <- read.csv('pml-testing.csv')
@@ -29,6 +29,12 @@ dim(Train_Data)
 dim(Test_Data)
 ```
 There are 160 variables, and we will predict the "classe" variable which represent the Participants' manner. 
+Then split the training data into Training and validation data. 
+```{r split data}
+inTrain <- createDataPartition(y=Train_Data$classe, p=0.75, list=FALSE)
+Training_Data <- Train_Data[inTrain,]
+Validation_Data <- Train_Data[-inTrain,]
+```
 
 ## Including Plots
 
