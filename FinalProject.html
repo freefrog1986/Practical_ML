@@ -131,21 +131,57 @@ $(document).ready(function () {
 <p>what you think the expected out of sample error is, and why you made the choices you did.</p>
 <p>You will also use your prediction model to predict 20 different test cases.</p>
 </div>
-<div id="load-and-split-data" class="section level2">
-<h2>Load and split data</h2>
+<div id="cleaning-the-data" class="section level2">
+<h2>Cleaning the Data</h2>
+<div id="load-data" class="section level3">
+<h3>Load data</h3>
 <p>The data for this project come from this source: <a href="http://groupware.les.inf.puc-rio.br/har" class="uri">http://groupware.les.inf.puc-rio.br/har</a><br />
 Load the train data and test data.</p>
 <pre class="r"><code>Train_Data &lt;- read.csv('pml-training.csv')
 Test_Data &lt;- read.csv('pml-testing.csv')
-dim(Train_Data)</code></pre>
+
+dim(Train_Data);dim(Test_Data)</code></pre>
 <pre><code>## [1] 19622   160</code></pre>
-<pre class="r"><code>dim(Test_Data)</code></pre>
 <pre><code>## [1]  20 160</code></pre>
-<p>There are 160 variables, and we will predict the “classe” variable which represent the Participants’ manner. Then split the training data into Training and validation data.</p>
+<p>There are 160 variables, and we will predict the “classe” variable which represent the Participants’ manner.</p>
+</div>
+<div id="subset-data" class="section level3">
+<h3>Subset data</h3>
+<p>In this section, we will remove all columns that<br />
+- Contains NA.<br />
+- Has time-dependence. (Since the testing dataset has no time-dependence, these values are useless).<br />
+- Not numeric.</p>
+<pre class="r"><code>features &lt;- names(Train_Data[,colSums(is.na(Train_Data))==0])[8:59]
+
+Train_Dt &lt;- Train_Data[,c(features,&quot;classe&quot;)]
+Test_Dt &lt;- Test_Data[,c(features,&quot;problem_id&quot;)]
+
+dim(Train_Dt);dim(Test_Dt);</code></pre>
+<pre><code>## [1] 19622    53</code></pre>
+<pre><code>## [1] 20 53</code></pre>
+</div>
+<div id="split-data" class="section level3">
+<h3>Split data</h3>
+<p>Then split the training data into Training and validation data.</p>
 <pre class="r"><code>library(caret)
+
 inTrain &lt;- createDataPartition(y=Train_Data$classe, p=0.75, list=FALSE)
-Training_Data &lt;- Train_Data[inTrain,]
-Validation_Data &lt;- Train_Data[-inTrain,]</code></pre>
+
+Training_Data &lt;- Train_Dt[inTrain,]
+Validation_Data &lt;- Train_Dt[-inTrain,]</code></pre>
+</div>
+</div>
+<div id="pre-processing" class="section level2">
+<h2>Pre-processing</h2>
+<p>First, find out which columns are most correlated with classe variable</p>
+<p>preObj&lt;-preProcess(training[,-58],method=c(“center”,“scale”))</p>
+<p>preObj &lt;- preProcess(Training_Data[,-160],method=c(“BoxCox”)) prepre&lt;-predict(preObj,Training_Data[,-160])</p>
+<p>prc&lt;-prcomp(Training_Data[,-160])</p>
+<p>Preprocess_Data &lt;- preProcess(log10(Training_Data[,-160]+1),method=“pca”,pcaComp=2)</p>
+<p>modelFit&lt;-train(classe~., data = Training_Data, preProcess=c(‘pca’),method=“glm”)</p>
+<p>modelFit&lt;-train(classe~., data = Training_Data, preProcess=c(‘centere’,‘scale’),method=“glm”)</p>
+<p>preoutcome&lt;-predict(modelFit, data = Training_Data)</p>
+<p>plot(x=preoutcome, y=Training_Data$classe)</p>
 </div>
 <div id="including-plots" class="section level2">
 <h2>Including Plots</h2>

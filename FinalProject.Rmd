@@ -19,23 +19,80 @@ what you think the expected out of sample error is, and why you made the choices
 
 You will also use your prediction model to predict 20 different test cases.
 
-## Load and split data
+## Cleaning the Data
+### Load data
 The data for this project come from this source: http://groupware.les.inf.puc-rio.br/har        
 Load the train data and test data.
 ```{r load data}
 Train_Data <- read.csv('pml-training.csv')
 Test_Data <- read.csv('pml-testing.csv')
-dim(Train_Data)
-dim(Test_Data)
+
+dim(Train_Data);dim(Test_Data)
 ```
 There are 160 variables, and we will predict the "classe" variable which represent the Participants' manner. 
+
+### Subset data
+In this section, we will remove all columns that   
+- Contains NA.      
+- Has time-dependence. (Since the testing dataset has no time-dependence, these values are useless).   
+- Not numeric.
+``` {r subset data}
+features <- names(Train_Data[,colSums(is.na(Train_Data))==0])[8:59]
+
+Train_Dt <- Train_Data[,c(features,"classe")]
+Test_Dt <- Test_Data[,c(features,"problem_id")]
+
+dim(Train_Dt);dim(Test_Dt);
+```
+
+### Split data
 Then split the training data into Training and validation data. 
 ```{r split data, eval = FALSE}
 library(caret)
+
 inTrain <- createDataPartition(y=Train_Data$classe, p=0.75, list=FALSE)
-Training_Data <- Train_Data[inTrain,]
-Validation_Data <- Train_Data[-inTrain,]
+
+Training_Data <- Train_Dt[inTrain,]
+Validation_Data <- Train_Dt[-inTrain,]
 ```
+
+## Pre-processing
+First, find out which columns are most correlated with classe variable
+
+preObj<-preProcess(training[,-58],method=c("center","scale"))
+
+preObj <- preProcess(Training_Data[,-160],method=c("BoxCox"))
+prepre<-predict(preObj,Training_Data[,-160])
+
+
+prc<-prcomp(Training_Data[,-160])
+
+Preprocess_Data <- preProcess(log10(Training_Data[,-160]+1),method="pca",pcaComp=2)
+
+modelFit<-train(classe~., data = Training_Data, preProcess=c('pca'),method="glm")
+
+modelFit<-train(classe~., data = Training_Data, preProcess=c('centere','scale'),method="glm")
+
+preoutcome<-predict(modelFit, data = Training_Data)
+
+plot(x=preoutcome, y=Training_Data$classe)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ## Including Plots
 
