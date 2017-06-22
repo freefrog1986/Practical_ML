@@ -19,64 +19,88 @@ what you think the expected out of sample error is, and why you made the choices
 
 You will also use your prediction model to predict 20 different test cases.
 
-## Cleaning the Data
-### Load data
+
+### Introduction
+Using devices such as Jawbone Up, Nike FuelBand, and Fitbit it is now possible to collect a large amount of data about personal activity relatively inexpensively. These type of devices are part of the quantified self movement Â– a group of enthusiasts who take measurements about themselves regularly to improve their health, to find patterns in their behavior, or because they are tech geeks.
+
+One thing that people regularly do is quantify how much of a particular activity they do, but they rarely quantify how well they do it. In this data set, the participants were asked to perform barbell lifts correctly and incorrectly in 5 different ways. More information is available from the website here: http://groupware.les.inf.puc-rio.br/har (see the section on the Weight Lifting Exercise Dataset).
+
+In this project, the goal will be to use data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants toto predict the manner in which praticipants did the exercise.
+
+The dependent variable or response is the “classe” variable in the training set.
+
+### Loading Data
 The data for this project come from this source: http://groupware.les.inf.puc-rio.br/har        
 Load the train data and test data.
 ```{r load data}
-Train_Data <- read.csv('pml-training.csv')
-Test_Data <- read.csv('pml-testing.csv')
+setwd('/Users/freefrog/Studing/DataScience/Practical_ML')
+
+Train_Data <- read.csv('pml-training.csv',na.strings=c("", "NA", "NULL"))
+Test_Data <- read.csv('pml-testing.csv', na.strings=c("", "NA", "NULL"))
 
 dim(Train_Data);dim(Test_Data)
 ```
 There are 160 variables, and we will predict the "classe" variable which represent the Participants' manner. 
 
-### Subset data
-In this section, we will remove all columns that   
-- Contains NA.      
-- Has time-dependence. (Since the testing dataset has no time-dependence, these values are useless).   
-- Not numeric.
+### Cleaning the Data
+In this section, we will remove variables that   
+- Have too many NA values.      
+- Unrelated variables. (Since the testing dataset has no time-dependence, these values are useless).   
+- Low variance variables.
+- Highly correlated variables.
 ``` {r subset data}
-features <- names(Train_Data[,colSums(is.na(Train_Data))==0])[8:59]
+# Remove variables that contain NA values
+Training <- Train_Data[,colSums(is.na(Train_Data))==0]
+dim(Training)
 
-Train_Dt <- Train_Data[,c(features,"classe")]
-Test_Dt <- Test_Data[,c(features,"problem_id")]
+# Remove unrelated variables
+remove = c('X', 'user_name', 'raw_timestamp_part_1', 'raw_timestamp_part_2', 'cvtd_timestamp', 'new_window', 'num_window')
+Training <- Training[,-which(names(Training) %in% remove)]
+dim(Training)
 
-dim(Train_Dt);dim(Test_Dt);
+# Remove low variance variables
+library(caret)
+zeroVar= nearZeroVar(Training[,sapply(Training, is.numeric)],
+                     saveMetrics = TRUE)
+Training = Training[,zeroVar[, 'nzv']==0]
+dim(Training)
+
+# Remove highly correlated variables (90%)
+corrMatrix <- cor(Training[sapply(Training, is.numeric)])
+
+corrDF <- expand.grid(row = 1:dim(corrMatrix)[1], 
+                      col = 1:dim(corrMatrix)[2])
+corrDF$correlation <- as.vector(corrMatrix)
+levelplot(correlation ~ row+ col, corrDF)
+
+High_cor_var = findCorrelation(corrMatrix, 
+                   cutoff = .90, 
+                   verbose = TRUE)
+Training = Training[, -High_cor_var]
+dim(Training)
 ```
 
 ### Split data
-Then split the training data into Training and validation data. 
+Then split the training data into Training and Testing data. 
 ```{r split data, eval = FALSE}
 library(caret)
 
-inTrain <- createDataPartition(y=Train_Data$classe, p=0.75, list=FALSE)
+inTrain <- createDataPartition(y=Train_Data$classe, p=0.6, list=FALSE)
 
 Training_Data <- Train_Dt[inTrain,]
-Validation_Data <- Train_Dt[-inTrain,]
+Testing_Data <- Train_Dt[-inTrain,]
+
+dim(Training_Data);dim(Testing_Data)
 ```
 
-## Pre-processing
-First, find out which columns are most correlated with classe variable
-
-preObj<-preProcess(training[,-58],method=c("center","scale"))
-
-preObj <- preProcess(Training_Data[,-160],method=c("BoxCox"))
-prepre<-predict(preObj,Training_Data[,-160])
-
-
-prc<-prcomp(Training_Data[,-160])
-
-Preprocess_Data <- preProcess(log10(Training_Data[,-160]+1),method="pca",pcaComp=2)
-
-modelFit<-train(classe~., data = Training_Data, preProcess=c('pca'),method="glm")
-
-modelFit<-train(classe~., data = Training_Data, preProcess=c('centere','scale'),method="glm")
-
-preoutcome<-predict(modelFit, data = Training_Data)
-
-plot(x=preoutcome, y=Training_Data$classe)
-
+## Fitting the Model
+### Decision Tree Model
+```{r}
+library(tree)
+set.seed(12345)
+Model_Tree=tree(classe~.,data=Training_Data)
+summary(Model_Tree)
+```
 
 
 
