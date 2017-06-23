@@ -53,17 +53,23 @@ In this section, we will remove variables that
 Training <- Train_Data[,colSums(is.na(Train_Data))==0]
 dim(Training)
 
+Testing <- Test_Data[,colSums(is.na(Test_Data))==0]
+dim(Testing)
+
 # Remove unrelated variables
 remove = c('X', 'user_name', 'raw_timestamp_part_1', 'raw_timestamp_part_2', 'cvtd_timestamp', 'new_window', 'num_window')
 Training <- Training[,-which(names(Training) %in% remove)]
 dim(Training)
+Testing <- Testing[,-which(names(Testing) %in% remove)]
+dim(Testing)
 
 # Remove low variance variables
 library(caret)
-zeroVar= nearZeroVar(Training[,sapply(Training, is.numeric)],
+zeroVar = nearZeroVar(Training[,sapply(Training, is.numeric)],
                      saveMetrics = TRUE)
 Training = Training[,zeroVar[, 'nzv']==0]
-dim(Training)
+Testing = Testing[,zeroVar[, 'nzv']==0]
+dim(Training);dim(Testing)
 
 # Remove highly correlated variables (90%)
 corrMatrix <- cor(Training[sapply(Training, is.numeric)])
@@ -77,7 +83,8 @@ High_cor_var = findCorrelation(corrMatrix,
                    cutoff = .90, 
                    verbose = TRUE)
 Training = Training[, -High_cor_var]
-dim(Training)
+Testing = Testing[, -High_cor_var]
+dim(Training);dim(Testing)
 ```
 
 ### Split data
@@ -136,3 +143,10 @@ accurancy$overall
 ```
 This method has a very high accuracy of 0.9940527.
 
+##Conclusion
+Predict the testing data to get the test answers.
+```{r}
+answers <- predict(Model_RF, Testing)
+answers
+```
+After submitting those answers, we got 20 of 20 points which show that this method has high accuracy.
