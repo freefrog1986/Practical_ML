@@ -81,49 +81,58 @@ dim(Training)
 ```
 
 ### Split data
-Then split the training data into Training and Testing data. 
-```{r split data, eval = FALSE}
-library(caret)
+Then split the training data into Training and Testing data for cross validation.. 
+```{r split data}
+inTrain <- createDataPartition(y=Training$classe, p=.7, list=FALSE)
 
-inTrain <- createDataPartition(y=Train_Data$classe, p=0.6, list=FALSE)
-
-Training_Data <- Train_Dt[inTrain,]
-Testing_Data <- Train_Dt[-inTrain,]
+Training_Data <- Training[inTrain,]
+Testing_Data <- Training[-inTrain,]
 
 dim(Training_Data);dim(Testing_Data)
 ```
 
 ## Fitting the Model
 ### Decision Tree Model
-```{r}
-library(tree)
+Now we fit a Decision tree Modele to these data, and plot it.
+```{r fig.width=8, fig.height = 8}
+library(rpart)
 set.seed(12345)
-Model_Tree=tree(classe~.,data=Training_Data)
-summary(Model_Tree)
+modFitDT <- rpart(classe ~ ., data = Training_Data,
+                  method="class",
+                  control = rpart.control(method = "cv",
+                                          number = 10))
+plot(modFitDT)
+text(modFitDT,cex=.8)
 ```
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-## Including Plots
-
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
+Predicting with decision tree model to check the performance on the testing data for cross validation.
+```{r}
+library('e1071')
+Pre_Tree <- predict(modFitDT, Testing_Data, type = "class")
+confusionMatrix(Pre_Tree, Testing_Data$classe)
 ```
+The Accuracy is 0.6955 which is not very high.
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+### Random Forests
+These methods use trees as building blocks to build more complex models.
+```{r}
+require(randomForest)
+set.seed(12345)
+Model_RF=randomForest(classe~.,
+                      data=Training_Data,
+                      ntree=100, 
+                      importance=TRUE)
+```
+we can see which variables have higher impact on the prediction using varImpPlot function.
+```{r}
+varImpPlot(Model_RF,)
+
+```
+Let's predict and get the accurancy
+```{r}
+Pre_RF <- predict(Model_RF, newdata = Testing_Data,type = "class")
+accurancy <- confusionMatrix(Pre_RF, Testing_Data$classe)
+accurancy$overall
+```
+This method has a very high accuracy of 0.9940527.
+
