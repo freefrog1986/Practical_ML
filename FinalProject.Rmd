@@ -1,6 +1,6 @@
 ---
 title: "Manner Predicting Using Machine Learning"
-author: "LiuBo"
+author: "Liu Bo"
 date: "6/23/2017"
 output: html_document
 ---
